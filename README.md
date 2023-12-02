@@ -1,0 +1,8 @@
+This is a free-to-use template for Advent of Code programs! All I ask is that you leave the LICENSE file intact (though you may rename it and apply your own license to the resulting repository).
+
+The template is set up so that you can jump straight into coding the solutions without worrying about the boilerplate to run it. There is a little bit of fine print to that, though:
+
+1. Input is expected to be in text files at `data/dayXX.txt` (replace XX with the day number, using a single digit for days 1 to 9). You can of course change the filenames yourself, but this is what's been set up in the template. Files in that folder are ignored by the repo per default, as the creator of Advent of Code [requests](https://twitter.com/ericwastl/status/1465805354214830081) that users not publish their input.
+2. The statements for the filenames are broken into three lines each so that the one containing "example" may easily be (un)commented to switch the file. Use `data/dayXXexample.txt` for those files.
+3. Each day will by default run separate methods for part 1 and part 2. If you can write more efficient code with one sweep and save the individual answers for later, copy the [RunOnce](templates/RunOnce.txt) template in place of that day's main.
+4. If you want to use VSCode's debugger with a console, open `launch.json` (you can ctrl-click [this](.vscode/launch.json) in VSCode once Build and Debug assets are generated) and replace the line `"console": "internalConsole",` with `"console": "integratedTerminal",`.

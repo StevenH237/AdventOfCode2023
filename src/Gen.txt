@@ -1,0 +1,26 @@
+// This C# code generated the day templates.
+
+foreach (int i in Enumerable.Range(1, 25))
+{
+  Directory.CreateDirectory($"src/days/day{i}");
+  File.WriteAllText($"src/days/day{i}/Main{i}.cs",
+@$"public static class Day{i}Main
+{{
+  const string Filename = ""data/day{i}"" +
+    // ""example"" +
+    "".txt"";
+
+  public static string Part1()
+  {{
+    var file = File.ReadAllLines(Filename);
+    return ""Not written yet!"";
+  }}
+
+  public static string Part2()
+  {{
+    var file = File.ReadAllLines(Filename);
+    return ""Not written yet!"";
+  }}
+}}"
+  );
+}
