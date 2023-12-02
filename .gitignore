@@ -1,4 +1,4 @@
-.vscode/
-data/
-bin/
-obj/
+.vscode/*
+bin/*
+data/*
+obj/*
