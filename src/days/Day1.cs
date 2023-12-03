@@ -31,7 +31,7 @@ public static class Day1
     ["0"] = 0
   };
 
-  public static string Part1(StreamReader input)
+  public static string Part1(string fname, StreamReader input)
   {
     int sum = 0;
 
@@ -56,7 +56,7 @@ public static class Day1
     return sum.ToString();
   }
 
-  public static string Part2(StreamReader input)
+  public static string Part2(string fname, StreamReader input)
   {
     int sum = 0;
 

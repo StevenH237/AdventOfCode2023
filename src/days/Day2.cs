@@ -6,7 +6,7 @@ public static class Day2
   static Regex gamePattern = new(@"^Game (\d+): (.+)$");
   static Regex countPattern = new(@"^(\d+) (red|green|blue)$");
 
-  public static string Part1(StreamReader input)
+  public static string Part1(string fname, StreamReader input)
   {
     int redLimit = 12;
     int greenLimit = 13;
@@ -66,7 +66,7 @@ public static class Day2
     return gameSum.ToString();
   }
 
-  public static string Part2(StreamReader input)
+  public static string Part2(string fname, StreamReader input)
   {
     int powerSum = 0;
 
