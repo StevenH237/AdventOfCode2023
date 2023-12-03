@@ -17,15 +17,15 @@ public static class Day3
     return results[fname].Part1Result;
   }
 
-  // public static string Part2(string fname, StreamReader input)
-  // {
-  //   if (!results.ContainsKey(fname))
-  //   {
-  //     results[fname] = new Day3Result(input);
-  //   }
+  public static string Part2(string fname, StreamReader input)
+  {
+    if (!results.ContainsKey(fname))
+    {
+      results[fname] = new Day3Result(input);
+    }
 
-  //   return results[fname].Part2Result;
-  // }
+    return results[fname].Part2Result;
+  }
 }
 
 public class Day3Result
@@ -84,18 +84,31 @@ public class Day3Result
         {
           if (symbols.ContainsKey((x, y)))
           {
-            symbols[(x, y)].used = true;
-            num.used = true;
-            sum += num.value;
-            goto nextNum;
+            symbols[(x, y)].numbers.Add(num);
+            if (!num.used)
+            {
+              num.used = true;
+              sum += num.value;
+            }
           }
         }
       }
-
-    nextNum:;
     }
 
     Part1Result = sum.ToString();
+
+    int ratios = 0;
+
+    foreach (D3Symbol sym in symbols.Values)
+    {
+      if (sym.symbol != '*') continue;
+      List<D3Number> nums = sym.numbers;
+      if (nums.Count != 2) continue;
+
+      ratios += nums[0].value * nums[1].value;
+    }
+
+    Part2Result = ratios.ToString();
   }
 }
 
@@ -113,5 +126,5 @@ internal class D3Symbol
   internal int x;
   internal int y;
   internal char symbol;
-  internal bool used = false;
+  internal List<D3Number> numbers = new();
 }
