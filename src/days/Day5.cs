@@ -17,20 +17,21 @@ public static class Day5
     return results[fname].Part1Result;
   }
 
-  // public static string Part2(string fname, StreamReader input)
-  // {
-  //   if (!results.ContainsKey(fname))
-  //   {
-  //     results[fname] = new Day5Result(input);
-  //   }
+  public static string Part2(string fname, StreamReader input)
+  {
+    if (!results.ContainsKey(fname))
+    {
+      results[fname] = new Day5Result(input);
+    }
 
-  //   return results[fname].Part2Result;
-  // }
+    return results[fname].Part2Result;
+  }
 }
 
 public class Day5Result
 {
-  List<long> Seeds;
+  List<long> Seeds1;
+  List<(long Start, long Count)> Seeds2;
   List<D5Map> Maps;
 
   public readonly string Part1Result;
@@ -41,7 +42,8 @@ public class Day5Result
     // Start with the seed catcher
     string line = input.ReadLine();
 
-    Seeds = new(line.Split(" ").Skip(1).Select(long.Parse));
+    Seeds1 = new(line.Split(" ").Skip(1).Select(long.Parse));
+    Seeds2 = new(Seeds1.Chunk(2).Select(x => (x[0], x[1])));
     Maps = new();
 
     // Read the blank line 2
@@ -53,9 +55,26 @@ public class Day5Result
     }
 
     // Now iterate the inputs
-    long lowLocation = Seeds.Select(seed => Maps.Aggregate(seed, (index, map) => map[index])).Min();
+    long lowLocation = Seeds1
+      .Select(seed => Maps
+        .Aggregate(seed, (index, map) => map[index]))
+      .Min();
+
+    long lowLocation2 = long.MaxValue;
+    foreach (var seedRange in Seeds2)
+    {
+      Console.WriteLine($"Processing range {seedRange.Start} × {seedRange.Count}...");
+
+      long test = LongRange(seedRange.Start, seedRange.Count)
+        .Select(seed => Maps
+          .Aggregate(seed, (index, map) => map[index])
+        ).Min();
+
+      if (test < lowLocation2) lowLocation2 = test;
+    }
 
     Part1Result = lowLocation.ToString();
+    Part2Result = lowLocation2.ToString();
   }
 
   D5Map CreateMap(StreamReader input)
@@ -74,6 +93,14 @@ public class Day5Result
     }
 
     return map;
+  }
+
+  IEnumerable<long> LongRange(long start, long count)
+  {
+    for (long i = start; i < (start + count); i++)
+    {
+      yield return i;
+    }
   }
 }
 
