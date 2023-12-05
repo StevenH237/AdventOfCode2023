@@ -60,12 +60,18 @@ public class Day4Result
 
     int scoreSum = 0;
 
-    foreach (D4Card card in cards)
+    foreach ((D4Card card, int i) in cards.Select((x, i) => (x, i)))
     {
       scoreSum += card.Score();
+
+      foreach ((D4Card card2, int i2) in cards.Select((x, i) => (x, i)).Skip(i + 1).Take(card.WinCount))
+      {
+        card2.instances += card.instances;
+      }
     }
 
     Part1Result = scoreSum.ToString();
+    Part2Result = cards.Select(x => x.instances).Sum().ToString();
   }
 }
 
@@ -74,6 +80,7 @@ public class D4Card
   public int id;
   public int[] winners;
   public int[] lots;
+  public int instances = 1;
 
   public int Score()
   {
@@ -81,4 +88,6 @@ public class D4Card
     if (intersect.Count() == 0) return 0;
     return 1 << (intersect.Count() - 1);
   }
+
+  public int WinCount => winners.Intersect(lots).Count();
 }
