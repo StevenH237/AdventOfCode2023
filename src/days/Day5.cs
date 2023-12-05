@@ -17,20 +17,20 @@ public static class Day5
     return results[fname].Part1Result;
   }
 
-  public static string Part2(string fname, StreamReader input)
-  {
-    if (!results.ContainsKey(fname))
-    {
-      results[fname] = new Day5Result(input);
-    }
+  // public static string Part2(string fname, StreamReader input)
+  // {
+  //   if (!results.ContainsKey(fname))
+  //   {
+  //     results[fname] = new Day5Result(input);
+  //   }
 
-    return results[fname].Part2Result;
-  }
+  //   return results[fname].Part2Result;
+  // }
 }
 
 public class Day5Result
 {
-  List<int> Seeds;
+  List<long> Seeds;
   List<D5Map> Maps;
 
   public readonly string Part1Result;
@@ -41,7 +41,7 @@ public class Day5Result
     // Start with the seed catcher
     string line = input.ReadLine();
 
-    Seeds = new(line.Split(" ").Skip(1).Select(int.Parse));
+    Seeds = new(line.Split(" ").Skip(1).Select(long.Parse));
     Maps = new();
 
     // Read the blank line 2
@@ -53,7 +53,7 @@ public class Day5Result
     }
 
     // Now iterate the inputs
-    int lowLocation = Seeds.Select(seed => Maps.Aggregate(seed, (index, map) => map[index])).Min();
+    long lowLocation = Seeds.Select(seed => Maps.Aggregate(seed, (index, map) => map[index])).Min();
 
     Part1Result = lowLocation.ToString();
   }
@@ -79,19 +79,20 @@ public class Day5Result
 
 public class D5Map
 {
-  AVLTreeDictionary<int, int> backingMap;
+  AVLTreeDictionary<long, long> backingMap;
 
   public D5Map()
   {
-    backingMap = new() {
+    backingMap = new()
+    {
       [0] = 0
     };
   }
 
-  public void AddRange(int sourceStart, int destStart, int size)
+  public void AddRange(long destStart, long sourceStart, long size)
   {
     backingMap[sourceStart] = destStart - sourceStart;
-    int sourceEnd = sourceStart + size;
+    long sourceEnd = sourceStart + size;
     if (backingMap.FloorKey(sourceEnd) == sourceStart)
       backingMap[sourceEnd] = 0;
     else if (backingMap.FloorKey(sourceEnd) != sourceEnd)
@@ -102,13 +103,15 @@ public class D5Map
 
   public void AddLine(string line)
   {
-    int[] pars = line.Split(" ").Select(int.Parse).ToArray();
+    long[] pars = line.Split(" ").Select(long.Parse).ToArray();
     AddRange(pars[0], pars[1], pars[2]);
   }
 
-  public int this[int index] {
-    get {
-      int offset = backingMap.FloorEntry(index).Value;
+  public long this[long index]
+  {
+    get
+    {
+      long offset = backingMap.FloorEntry(index).Value;
       return index + offset;
     }
   }
