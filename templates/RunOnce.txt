@@ -1,0 +1,39 @@
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using Nixill.Collections;
+using Nixill.Utils;
+
+public static class DayX
+{
+  static Dictionary<string, DayXResult> results = new();
+
+  public static string Part1(string fname, StreamReader input)
+  {
+    if (!results.ContainsKey(fname))
+    {
+      results[fname] = new DayXResult(input);
+    }
+
+    return results[fname].Part1Result;
+  }
+
+  public static string Part2(string fname, StreamReader input)
+  {
+    if (!results.ContainsKey(fname))
+    {
+      results[fname] = new DayXResult(input);
+    }
+
+    return results[fname].Part2Result;
+  }
+}
+
+public class DayXResult
+{
+  public readonly string Part1Result;
+  public readonly string Part2Result;
+
+  public DayXResult(StreamReader input)
+  {
+  }
+}
