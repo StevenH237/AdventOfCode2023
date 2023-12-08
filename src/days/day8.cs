@@ -2,11 +2,11 @@ using System.Text.RegularExpressions;
 
 public static class Day8
 {
-  static Regex nodeFormat = new(@"([A-Z]{3}) = \(([A-Z]{3}), ([A-Z]{3})\)";
+  static Regex nodeFormat = new(@"([A-Z]{3}) = \(([A-Z]{3}), ([A-Z]{3})\)");
   
   public static string Part1(string fname, StreamReader input)
   {
-    Dictionary<string, D8Node> nodes;
+    Dictionary<string, D8Node> nodes = new();
     string steps = input.ReadLine();
     input.ReadLine();
 
@@ -16,11 +16,11 @@ public static class Day8
       string nodeID = mtc.Groups[1].Value;
       string nodeLN = mtc.Groups[2].Value;
       string nodeRN = mtc.Groups[3].Value;
-      nodes[nodeID] = new D8Node() { Left = nodeLN, right = nodeRN };
+      nodes[nodeID] = new D8Node() { Left = nodeLN, Right = nodeRN };
     }
     
     int moves = 0;
-    D8Node startNode = nodes["AAA"];
+    D8Node node = nodes["AAA"];
     
     foreach (char move in steps.RepeatInfinite())
     {
@@ -29,7 +29,7 @@ public static class Day8
       else moveTo = node.Right;
       moves += 1;
       if (moveTo == "ZZZ") return moves.ToString();
-      else node = nodes[MoveTo];
+      else node = nodes[moveTo];
     }
     
     throw new InvalidDataException("How did you reach this error?");
