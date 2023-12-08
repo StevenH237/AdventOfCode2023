@@ -37,7 +37,8 @@ public class Day7Result
       Hands.Add(new D7Hand(line));
     }
 
-    Part1Result = Hands.Order().Select((x, i) => (i+1) * x.Wager).Sum().ToString();
+    var HandsOrdered = Hands.Order();
+    Part1Result = Hands.Order().Select((x, i) => (i + 1) * x.Wager).Sum().ToString();
   }
 }
 
@@ -63,7 +64,7 @@ public class D7Hand : IComparable<D7Hand>
   {
     int rankComp = CompareRank(other);
     if (rankComp != 0) return rankComp;
-    return CompareCards(other); 
+    return CompareCards(other);
   }
 
   public int CompareRank(D7Hand other)
@@ -71,7 +72,8 @@ public class D7Hand : IComparable<D7Hand>
     return Rank.CompareTo(other.Rank);
   }
 
-  static Dictionary<char, int> Values = new() {
+  static Dictionary<char, int> Values = new()
+  {
     ['A'] = 14,
     ['K'] = 13,
     ['Q'] = 12,
@@ -91,7 +93,7 @@ public class D7Hand : IComparable<D7Hand>
   {
     return Cards
       .Zip(other.Cards)
-      .Select(x => (Values[x.Second] - Values[x.First]))
+      .Select(x => (Values[x.First] - Values[x.Second]))
       .Where(x => x != 0)
       .FirstOrDefault(0);
   }
