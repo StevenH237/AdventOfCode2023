@@ -2,7 +2,7 @@
   "customizations": {
     "codespaces": {
       "repositories": {
-        "StevenH237/AoC2019Data": {
+        "StevenH237/AoC2023Data": {
           "permissions": {
             "contents": "write"
           }
