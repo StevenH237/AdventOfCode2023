@@ -1,6 +1,7 @@
 public class Day9
 {
   readonly string Part1Result;
+  readonly string Part2Result;
 
   List<D9NumberLine> lines = new();
 
@@ -11,7 +12,8 @@ public class Day9
       lines.Add(new D9NumberLine(line));
     }
 
-    Part1Result = lines.Select(x => x.ExtrapolatedNumber).Sum().ToString();
+    Part1Result = lines.Select(x => x.RightExtrapolatedNumber).Sum().ToString();
+    Part2Result = lines.Select(x => x.LeftExtrapolatedNumber).Sum().ToString();
   }
 
   // --------- Static stuff can sit at the bottom of the page --------- //
@@ -29,6 +31,12 @@ public class Day9
     Day9 result = Get(fname, input);
     return result.Part1Result;
   }
+
+  public static string Part2(string fname, StreamReader input)
+  {
+    Day9 result = Get(fname, input);
+    return result.Part2Result;
+  }
 }
 
 public class D9NumberLine
@@ -37,7 +45,8 @@ public class D9NumberLine
   internal List<List<int>> AllLists = new();
   internal int Depth = 0;
   internal int LastNonzero;
-  internal int ExtrapolatedNumber;
+  internal int RightExtrapolatedNumber;
+  internal int LeftExtrapolatedNumber;
 
   public D9NumberLine(string input)
   {
@@ -71,17 +80,23 @@ public class D9NumberLine
     // And now expand them all!
     // First we'll do the final one outside the list just so it's the size
     // we expect it to be.
-    AllLists[AllLists.Count - 1].Add(LastNonzero);
+    lastList = AllLists[AllLists.Count - 1];
+    lastList.Insert(0, LastNonzero);
+    lastList.Add(LastNonzero);
 
     for (int l = AllLists.Count - 2; l >= 0; l--)
     {
       List<int> thisList = AllLists[l];
-      int len = thisList.Count;
+      thisList.Insert(0, thisList[0] - lastList[0]);
 
-      thisList.Add(thisList[len - 1] + AllLists[l + 1][len - 1]);
+      int len = thisList.Count;
+      thisList.Add(thisList[len - 1] + lastList[len - 1]);
+
+      lastList = thisList;
     }
 
     // And lastly...
-    ExtrapolatedNumber = OriginalList[OriginalList.Count - 1];
+    RightExtrapolatedNumber = OriginalList[OriginalList.Count - 1];
+    LeftExtrapolatedNumber = OriginalList[0];
   }
 }
