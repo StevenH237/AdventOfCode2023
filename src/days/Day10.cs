@@ -106,11 +106,8 @@ public class Day10
           state.BR = (state.BL != cell.Down);
         }
         if (state.TR && state.TL && state.BR && state.BL) answer += 1;
-        if (cell.InMainLoop)
-        {
-          state.TL = state.TR;
-          state.BL = state.BR;
-        }
+        state.TL = state.TR;
+        state.BL = state.BR;
       }
 
       if (state.TL || state.TR || state.BL || state.BR) throw new InvalidDataException("Something went wrong!");
