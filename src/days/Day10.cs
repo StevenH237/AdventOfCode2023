@@ -2,9 +2,6 @@ using Nixill.Collections.Grid;
 
 public class Day10
 {
-  readonly string Part1Result;
-  readonly string Part2Result;
-
   Grid<D10Cell> maze = new();
 
   D10Cell startCell = default(D10Cell);
@@ -93,6 +90,35 @@ public class Day10
     FarthestDistance = path.Count / 2;
   }
 
+  public string Part2()
+  {
+    int answer = 0;
+
+    foreach (IEnumerable<D10Cell> row in maze)
+    {
+      D10State state = new();
+
+      foreach (D10Cell cell in row)
+      {
+        if (cell.InMainLoop)
+        {
+          state.TR = (state.TL != cell.Up);
+          state.BR = (state.BL != cell.Down);
+        }
+        if (state.TR && state.TL && state.BR && state.BL) answer += 1;
+        if (cell.InMainLoop)
+        {
+          state.TL = state.TR;
+          state.BL = state.BR;
+        }
+      }
+
+      if (state.TL || state.TR || state.BL || state.BR) throw new InvalidDataException("Something went wrong!");
+    }
+
+    return answer.ToString();
+  }
+
   // --------- Static stuff can sit at the bottom of the page --------- //
   static Dictionary<string, Day10> results = new();
 
@@ -109,15 +135,16 @@ public class Day10
     return result.FarthestDistance.ToString();
   }
 
-  // public static string Part2(string fname, StreamReader input)
-  // {
-  //   Day10 result = Get(fname, input);
-  //   return result.Part2();
-  // }
+  public static string Part2(string fname, StreamReader input)
+  {
+    Day10 result = Get(fname, input);
+    return result.Part2();
+  }
 }
 
 public class D10Cell
 {
+  public char Input { get; internal set; }
   public int Row { get; internal set; }
   public int Column { get; internal set; }
 
@@ -133,13 +160,27 @@ public class D10Cell
 
   public D10Cell(char c, int row, int col)
   {
+    Input = c;
     Left = (c == '-' || c == 'J' || c == '7');
     Right = (c == '-' || c == 'L' || c == 'F');
     Up = (c == '|' || c == 'L' || c == 'J');
     Down = (c == '|' || c == '7' || c == 'F');
     InMainLoop = (c == 'S');
 
+    Distance = 0;
+    ManhattanDistance = 0;
+
+    InMainLoop = false;
+
     Column = col;
     Row = row;
   }
+}
+
+internal struct D10State()
+{
+  internal bool TL = false;
+  internal bool TR = false;
+  internal bool BL = false;
+  internal bool BR = false;
 }
