@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Nixill.Utils;
 
 public static class Day8
 {
@@ -67,7 +68,7 @@ public static class Day8
       hauntLengths.Add(GetHauntSteps(steps, nodes[haunt], nodes));
     }
 
-    return hauntLengths.AggregateFromFirst(LCM).ToString();
+    return hauntLengths.AggregateFromFirst(NumberUtils.LCM).ToString();
   }
 
   static int GetHauntSteps(string steps, D8Node node, Dictionary<string, D8Node> nodes)
@@ -86,20 +87,6 @@ public static class Day8
 
     throw new InvalidDataException("How did you reach this error?");
   }
-
-  static long GCD(long a, long b)
-  {
-    // Turn negative numbers positive; since any negative integer can be expressed as -1 times a positive integer, the GCD of two negative numbers (or a negative and a positive) will be the same as GCD(|a|, |b|) anyway
-    if (a < 0) a = -a;
-    if (b < 0) b = -b;
-    // Also, a should be the larger number.
-    if (b > a) (a, b) = (b, a);
-    while (b != 0)
-      (a, b) = (b, a % b);
-    return a;
-  }
-
-  static long LCM(long a, long b) => a / GCD(a, b) * b;
 }
 
 public struct D8Node
