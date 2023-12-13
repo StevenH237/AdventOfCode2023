@@ -8,27 +8,21 @@ using Nixill.Utils;
 
 public class Day12
 {
-  List<D12Line> Lines = new();
-
-  public Day12(string fname, StreamReader input)
-  {
-    Lines = new(input.GetLines().Select(l => new D12Line(l)));
-  }
-
-  // -- Boilerplate -- //
-  static Dictionary<string, Day12> results = new();
-
-  static Day12 Get(string fname, StreamReader input)
-  {
-    if (!results.ContainsKey(fname))
-      results[fname] = new Day12(fname, input);
-    return results[fname];
-  }
-
   public static string Part1(string fname, StreamReader input)
-    => Get(fname, input)
-      .Lines
+    => input.GetLines()
+      .Select(l => new D12Line(l))
       .Sum(l => l.CountValidArrangements())
+      .ToString();
+
+  public static string Part2(string fname, StreamReader input)
+    => input.GetLines()
+      .Select(l =>
+      {
+        string[] parts = l.Split(" ");
+        string left = parts[0];
+        string right = parts[1];
+        return new D12Line($"{left}?{left}?{left}?{left}?{left} {right},{right},{right},{right},{right}");
+      }).Sum(l => l.CountValidArrangements())
       .ToString();
 }
 
