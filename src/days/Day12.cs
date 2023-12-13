@@ -8,36 +8,29 @@ using Nixill.Utils;
 
 public class Day12
 {
-  List<D12Line> Lines = new();
-
-  public Day12(string fname, StreamReader input)
-  {
-    Lines = new(input.GetLines().Select(l => new D12Line(l)));
-  }
-
-  // -- Boilerplate -- //
-  static Dictionary<string, Day12> results = new();
-
-  static Day12 Get(string fname, StreamReader input)
-  {
-    if (!results.ContainsKey(fname))
-      results[fname] = new Day12(fname, input);
-    return results[fname];
-  }
-
   public static string Part1(string fname, StreamReader input)
-    => Get(fname, input)
-      .Lines
+    => input.GetLines()
+      .Select(l => new D12Line(l))
       .Sum(l => l.CountValidArrangements())
       .ToString();
+
+  // public static string Part2(string fname, StreamReader input)
+  //   => input.GetLines()
+  //     .Select(l =>
+  //     {
+  //       string[] parts = l.Split(" ");
+  //       string left = parts[0];
+  //       string right = parts[1];
+  //       return new D12Line($"{left}?{left}?{left}?{left}?{left} {right},{right},{right},{right},{right}");
+  //     }).Sum(l => l.CountValidArrangements())
+  //     .ToString();
 }
 
 public class D12Line
 {
   public string InputLine;
   public List<int> Pattern;
-  public int Length;
-  public Regex Report;
+  public string Report;
 
   public D12Line(string line)
   {
@@ -45,72 +38,102 @@ public class D12Line
     string[] parts = InputLine.Split(" ");
 
     Pattern = parts[1].Split(",").Select(int.Parse).ToList();
-    Length = parts[0].Length;
 
-    string reportPattern = "^";
-
-    foreach (char[] chunk in parts[0]
-        .ChunkWhile((p, c) => (p == c), skipEmpty: true, prependFails: true)
-        .Select(x => x.ToArray()))
+    Report = parts[0].Select(x => x switch
     {
-      char chunkChar = chunk[0] switch
-      {
-        '.' => 'w',
-        '#' => 'D',
-        '?' => '.',
-        _ => '\0'
-      };
-      if (chunk.Length < 4) reportPattern += Enumerable.Repeat(chunkChar, chunk.Length).FormString();
-      else reportPattern += $"{chunkChar}{{{chunk.Length}}}";
-    }
-
-    reportPattern += "$";
-
-    Report = new Regex(reportPattern);
+      '.' => 'w',
+      '#' => 'D',
+      '?' => '_',
+      _ => '\0'
+    }).FormString();
   }
 
   public int CountValidArrangements()
     => GetValidArrangements().Count();
 
   public IEnumerable<string> GetValidArrangements()
-    => GetAllArrangements()
-      .Where(arr => Report.IsMatch(arr));
+    => GetArrangements(Pattern, Report);
 
-  public IEnumerable<string> GetAllArrangements()
-    => GetArrangements(Pattern, Length);
-
-  public static IEnumerable<string> GetArrangements(IEnumerable<int> pattern, int length)
+  public static IEnumerable<string> GetArrangements(IEnumerable<int> pattern, string report)
   {
     if (pattern.Count() == 0)
     {
-      yield return new string('w', length);
       yield break;
     }
 
-    int extraSpace = length - (pattern.Sum() + pattern.Count() - 1);
-    if (extraSpace < 0) throw new InvalidDataException("Not enough space!");
+    int extraSpace = report.Length - (pattern.Sum() + pattern.Count() - 1);
+    if (extraSpace < 0) yield break;
 
-    if (pattern.Count() == 1)
+    Regex patternRegex = new(string.Join("[w_]+", pattern.Select(c => "[D_]" + (c >= 2 ? $"{{{c}}}" : ""))));
+
+    int p = 0;
+    while (p <= extraSpace && !report[0..p].Contains('D'))
     {
-      foreach (int i in Enumerable.Range(0, extraSpace + 1))
+      Match mtc = patternRegex.Match(report, p);
+
+      if (mtc.Success)
       {
-        yield return
-          new string('w', i)
-          + new string('D', pattern.First())
-          + new string('w', extraSpace - i);
+        p = mtc.Index;
+
+        if (pattern.Count() == 1)
+          yield return new string('w', p)
+            + new string('D', pattern.First())
+            + new string('w', extraSpace - p);
+        else if (extraSpace - p == 0)
+        {
+          yield return String.Join('w', pattern.Select(c => new string('D', c)));
+        }
+        else
+        {
+          string reportLeft = report[(p + pattern.First() + 1)..^0];
+          string prefix = new string('w', p)
+            + new string('D', pattern.First())
+            + "w";
+
+          foreach (string suffix in GetArrangements(pattern.Skip(1), reportLeft))
+          {
+            yield return prefix + suffix;
+          }
+        }
       }
+      else break;
 
-      yield break;
-    }
-
-    foreach (int i in Enumerable.Range(0, extraSpace + 1))
-    {
-      string prefix = new string('w', i) + new string('D', pattern.First()) + "w";
-
-      foreach (string s in GetArrangements(pattern.Skip(1), length - (i + pattern.First() + 1)))
-      {
-        yield return prefix + s;
-      }
+      p += 1;
     }
   }
+
+  // public static IEnumerable<string> GetArrangements(IEnumerable<int> pattern, int length)
+  // {
+  //   if (pattern.Count() == 0)
+  //   {
+  //     yield return new string('w', length);
+  //     yield break;
+  //   }
+
+  //   int extraSpace = length - (pattern.Sum() + pattern.Count() - 1);
+  //   if (extraSpace < 0) throw new InvalidDataException("Not enough space!");
+
+  //   if (pattern.Count() == 1)
+  //   {
+  //     foreach (int i in Enumerable.Range(0, extraSpace + 1))
+  //     {
+  //       yield return
+  //         new string('w', i)
+  //         + new string('D', pattern.First())
+  //         + new string('w', extraSpace - i);
+  //     }
+
+  //     yield break;
+  //   }
+
+  //   foreach (int i in Enumerable.Range(0, extraSpace + 1))
+  //   {
+  //     string prefix = new string('w', i) + new string('D', pattern.First()) + "w";
+
+  //     foreach (string s in GetArrangements(pattern.Skip(1), length - (i + pattern.First() + 1)))
+  //     {
+  //       yield return prefix + s;
+  //     }
+  //   }
+  // }
 }
