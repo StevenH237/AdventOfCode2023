@@ -11,7 +11,7 @@ public static class Program
     else
     {
       Console.Write("Which day's program should be run? (Enter a number): ");
-      which = Console.ReadLine().ToLowerInvariant();
+      which = Console.ReadLine();
     }
 
     Type dayType = null;
