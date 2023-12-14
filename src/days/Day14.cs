@@ -1,24 +1,56 @@
 using Nixill.Collections.Grid;
+using Nixill.Utils;
 
 public class Day14
 {
-  D14Field Field;
-
-  public Day14(string fname, StreamReader input)
+  public static string Part1(string fname, StreamReader input)
   {
-    Field = new(input.GetLines());
+    D14Field field = new(input.GetLines().Cast<IEnumerable<char>>());
+    field.RollNorthRotateRight();
+    field.RotateLeft();
+    return field.NorthMass().ToString();
   }
 
-  static Dictionary<string, Day14> results = new();
-
-  static Day14 Get(string fname, StreamReader input)
+  public static string Part2(string fname, StreamReader input)
   {
-    if (!results.ContainsKey(fname))
-      results[fname] = new Day14(fname, input);
-    return results[fname];
-  }
+    D14Field field = new(input.GetLines().Cast<IEnumerable<char>>());
+    Dictionary<int, int> cache = new();
 
-  public static string Part1(string fname, StreamReader input) => Get(fname, input).Field.NorthMass().ToString();
+    int spins = 0;
+    int cycleTime = -1;
+
+    foreach (int i in Enumerable.Range(1, 1_000_000_000))
+    {
+      spins = i;
+      field.SpinCycle();
+      if (cache.ContainsKey(field.GetHashCode()))
+      {
+        cycleTime = spins - cache[field.GetHashCode()];
+        break;
+      }
+      else
+      {
+        cache[field.GetHashCode()] = spins;
+      }
+
+      if (spins % 10_000 == 0)
+      {
+        Console.WriteLine($"No loop in {spins} cycles.");
+      }
+    }
+
+    int billionthCycle = 1_000_000_000 % cycleTime;
+    int ourPosition = spins % cycleTime;
+    int spinsToAdd = billionthCycle - ourPosition;
+    if (spinsToAdd < 0) spinsToAdd += cycleTime;
+
+    foreach (int i in Enumerable.Range(1, spinsToAdd))
+    {
+      field.SpinCycle();
+    }
+
+    return field.NorthMass().ToString();
+  }
 }
 
 public class D14Field
@@ -28,6 +60,44 @@ public class D14Field
   public D14Field(IEnumerable<IEnumerable<char>> field)
   {
     Backing = new(field);
+  }
+
+  public void RollNorthRotateRight()
+  {
+    List<char[]> outField = new();
+
+    foreach (IEnumerable<char> column in Backing.Columns)
+    {
+      char[] colArray = column.ToArray();
+      int len = colArray.Length;
+
+      char[] outArray = Enumerable.Repeat('.', len).ToArray();
+      int nextBoulder = len - 1;
+
+      foreach (char c in colArray)
+      {
+        len--;
+        if (c == 'O')
+        {
+          outArray[nextBoulder] = 'O';
+          nextBoulder--;
+        }
+        if (c == '#')
+        {
+          outArray[len] = '#';
+          nextBoulder = len - 1;
+        }
+      }
+
+      outField.Add(outArray);
+    }
+
+    Backing = new(outField);
+  }
+
+  public void RotateLeft()
+  {
+    Backing = new(Backing.Columns.Reverse());
   }
 
   public int NorthMass()
@@ -43,19 +113,37 @@ public class D14Field
 
       foreach (char c in colArray)
       {
-        len--;
         if (c == 'O')
         {
-          mass += nextBoulder;
-          nextBoulder--;
+          mass += len;
         }
-        else if (c == '#')
-        {
-          nextBoulder = len;
-        }
+        len--;
       }
     }
 
     return mass;
+  }
+
+  public void SpinCycle()
+  {
+    RollNorthRotateRight();
+    RollNorthRotateRight();
+    RollNorthRotateRight();
+    RollNorthRotateRight();
+  }
+
+  public void PrintField()
+  {
+    Backing.Select(x => x.FormString()).Do(x => Console.WriteLine(x));
+  }
+
+  public override string ToString()
+  {
+    return String.Join("\n", Backing.Select(x => x.FormString()));
+  }
+
+  public override int GetHashCode()
+  {
+    return ToString().GetHashCode();
   }
 }
