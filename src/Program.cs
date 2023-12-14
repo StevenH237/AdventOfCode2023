@@ -114,9 +114,23 @@ public static class Program
   // For convenience:
   public static IEnumerable<string> GetLines(this StreamReader input)
   {
-    for (string line = input.ReadLine(); line != null && line != ""; line = input.ReadLine())
+    bool blankLine = false;
+    for (string line = input.ReadLine(); line != null; line = input.ReadLine())
     {
-      yield return line;
+      if (blankLine)
+      {
+        yield return "";
+        blankLine = false;
+      }
+
+      if (line == "")
+      {
+        blankLine = true;
+      }
+      else
+      {
+        yield return line;
+      }
     }
   }
 
