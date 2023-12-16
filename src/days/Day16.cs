@@ -21,8 +21,55 @@ public class Day16
   public static string Part1(string fname, StreamReader input)
   {
     Day16 result = Get(fname, input);
-    result.Field.SimulateP1();
+    result.Field.Simulate();
     return result.Field.GetVisitedTiles().ToString();
+  }
+
+  public static string Part2(string fname, StreamReader input)
+  {
+    Day16 result = Get(fname, input);
+    D16Field field = result.Field;
+
+    int bestAnswer = 0;
+
+    int w = field.Width;
+    int h = field.Height;
+
+    foreach (int c in Enumerable.Range(1, w - 2))
+    {
+      // Beam from top down
+      field.Reset();
+      field.AddBeam(c, 0, 0, 1);
+      field.Simulate();
+      int answer = field.GetVisitedTiles();
+      if (answer > bestAnswer) bestAnswer = answer;
+
+      // Beam from bottom up
+      field.Reset();
+      field.AddBeam(c, h - 1, 0, -1);
+      field.Simulate();
+      answer = field.GetVisitedTiles();
+      if (answer > bestAnswer) bestAnswer = answer;
+    }
+
+    foreach (int r in Enumerable.Range(1, h - 2))
+    {
+      // Beam from top down
+      field.Reset();
+      field.AddBeam(0, r, 1, 0);
+      field.Simulate();
+      int answer = field.GetVisitedTiles();
+      if (answer > bestAnswer) bestAnswer = answer;
+
+      // Beam from bottom up
+      field.Reset();
+      field.AddBeam(w - 1, r, -1, 0);
+      field.Simulate();
+      answer = field.GetVisitedTiles();
+      if (answer > bestAnswer) bestAnswer = answer;
+    }
+
+    return bestAnswer.ToString();
   }
 }
 
@@ -33,6 +80,9 @@ public class D16Field
   internal Grid<bool> VertLines;
 
   internal List<D16Beam> Beams = new();
+
+  public int Width => Backing.Width;
+  public int Height => Backing.Height;
 
   public D16Field(IEnumerable<IEnumerable<char>> input)
   {
@@ -49,13 +99,25 @@ public class D16Field
     Beams.Add(new(this, 0, 1, 1, 0));
   }
 
-  public void SimulateP1()
+  public void Simulate()
   {
     while (Beams.Count > 0)
     {
       D16Beam beam = Beams.Pop();
       beam.Travel();
     }
+  }
+
+  public void Reset()
+  {
+    HorizLines = new(Backing.Width, Backing.Height);
+    VertLines = new(Backing.Width, Backing.Height);
+    Beams = new();
+  }
+
+  public void AddBeam(int x, int y, int Δx, int Δy)
+  {
+    Beams.Add(new(this, x, y, Δx, Δy));
   }
 
   public int GetVisitedTiles()
