@@ -138,6 +138,9 @@ public static class Program
 
   public static string GetEverything(this StreamReader input)
   {
-    return input.ReadToEnd();
+    string inp = input.ReadToEnd();
+    if (inp.EndsWith("\r\n")) return inp[..^2];
+    else if (inp.EndsWith("\n")) return inp[..^1];
+    else return inp;
   }
 }
