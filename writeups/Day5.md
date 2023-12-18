@@ -2,6 +2,8 @@
 
 Also, this post uses excerpts of the actual examples from [the site](https://adventofcode.com/2023/day/5).
 
+*This writeup was last edited December 17, 2023, as I noticed some typographical mistakes I made in my code.*
+
 ---
 
 The code I'm about to explain relied very heavily on a class I made called an `AVLTreeDictionary`. I created that class because I'm a Java transplant, and Java has its [`TreeMap`](https://docs.oracle.com/javase/8/docs/api/java/util/TreeMap.html) class that includes methods for retrieving the next-nearest entry from any given key — `lower`, `floor`, `ceiling`, and `higher` (`Key`/`Entry` depending on what exactly you want). C#'s [`SortedDictionary`](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.sorteddictionary-2?view=net-8.0) doesn't have those methods, and I couldn't just say goodbye to them when I've made a lot of things that need them. So while it's not the best-documented code (I'm working on writing it still), it's available [here](https://github.com/StevenH237/CSharp.Nixill/blob/master/CSharp.Nixill/src/Collections/AVLTree/AVLTreeDictionary.cs) and the "Nixill" package is available on NuGet [here](https://www.nuget.org/packages/Nixill/).
@@ -46,8 +48,8 @@ The keys in that dictionary correspond to the start of a rule's input range, inc
 I decided to make the values be the offsets of that rule (as seen in the fifth column of the table above) so that you only need to get the value of the rule applicable at a given input and then add that value to the input to get the output.
 
 1. The `D5Map` is initialized to just {0 → 0}.
-2. The first rule is `50 98 2`, which means input starts at 98, output starts at 50, and the size is 2. `50 - 98 = -48`, which makes -48 the offset; and `50 + 2 = 52`, which makes 52 the end of input. Therefore, the map gains the entries {98 → -48} and {100 → 0}.
-3. The second rule is `52 50 48`, which means that input starts at 50, output starts at 52, and the size is 48. `52 - 50 = 2`, which makes 2 the offset; and `52 + 48 = 100`, which makes 100 the end of input. Therefore, the map gains the entry {50 → 2} — it does *not* add {98 → 0} because the Dictionary already contains an entry at 98.
+2. The first rule is `50 98 2`, which means input starts at 98, output starts at 50, and the size is 2. `50 - 98 = -48`, which makes -48 the offset; and `98 + 2 = 100`, which makes 100 the end of input. Therefore, the map gains the entries {98 → -48} and {100 → 0}.
+3. The second rule is `52 50 48`, which means that input starts at 50, output starts at 52, and the size is 48. `52 - 50 = 2`, which makes 2 the offset; and `50 + 48 = 98`, which makes 98 the end of input. Therefore, the map gains the entry {50 → 2} — it does *not* add {98 → 0} because the Dictionary already contains an entry at 98.
 
 At the end of this all, the map looks like this:
 
@@ -72,7 +74,7 @@ Test file: example1.txt / Expected output: 35 / Actual output: 31
 
 Side note, this is exactly the reason I *made* the automatic test runner. Instant confirmation I'd done something wrong without confidently giving an answer anyway and I put it into the site and get told "no".
 
-I decided to take a break at that point, walked home from the coffee shop I'd thus far coded at, and re-read the puzzle. I nearly instantly figured out the error at that point — I'd swapped the input and output range starts. (I also initially did that when I was writing this post! I'm glad I noticed before committing it.)
+I decided to take a break at that point, walked home from the coffee shop I'd thus far coded at, and re-read the puzzle. I nearly instantly figured out the error at that point — I'd swapped the input and output range starts. (I also initially did that when I was writing this post! I'm glad I noticed before committing it. *Edit Dec 17: No, I didn't fully notice everything! A couple paragraphs above have been fixed.*)
 
 ```
 Test file: example1.txt / Expected output: 35 / Actual output: 35
