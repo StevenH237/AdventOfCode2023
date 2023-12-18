@@ -3,25 +3,16 @@ using Nixill.Collections.Grid;
 
 public class Day17
 {
-  D17Maze Maze;
-  public Day17(string fname, StreamReader input)
-  {
-    Maze = new(input.GetAllLines());
-  }
-
-  static Dictionary<string, Day17> results = new();
-
-  static Day17 Get(string fname, StreamReader input)
-  {
-    if (!results.ContainsKey(fname))
-      results[fname] = new Day17(fname, input);
-    return results[fname];
-  }
-
   public static string Part1(string fname, StreamReader input)
   {
-    Day17 result = Get(fname, input);
-    return result.Maze.GetShortestPathLength().ToString();
+    D17Maze maze = new(input.GetAllLines(), 1, 3);
+    return maze.GetShortestPathLength().ToString();
+  }
+
+  public static string Part2(string fname, StreamReader input)
+  {
+    D17Maze maze = new(input.GetAllLines(), 4, 10);
+    return maze.GetShortestPathLength().ToString();
   }
 }
 
@@ -31,18 +22,24 @@ public class D17Maze
   Grid<D17Node> HorizontalMoves;
   Grid<D17Node> VerticalMoves;
 
+  int MinMove;
+  int MaxMove;
+
   int Width => Scores.Width;
   int Height => Scores.Height;
 
   Queue<D17Node> UnresolvedNodes;
 
-  public D17Maze(IEnumerable<IEnumerable<char>> input)
+  public D17Maze(IEnumerable<IEnumerable<char>> input, int min, int max)
   {
     Scores = new(input.Select(l => l.Select(c => c - 48)));
 
     HorizontalMoves = new(Scores.Width, Scores.Height);
     VerticalMoves = new(Scores.Width, Scores.Height);
     UnresolvedNodes = new();
+
+    MinMove = min;
+    MaxMove = max;
 
     int finalX = Scores.Width - 1;
     int finalY = Scores.Height - 1;
@@ -70,7 +67,7 @@ public class D17Maze
     int nscore = score;
 
     // Forward direction (away from start) first
-    foreach (int steps in Enumerable.Range(1, 3))
+    foreach (int steps in Enumerable.Range(1, MaxMove))
     {
       nx += dir.ΔX;
       ny += dir.ΔY;
@@ -78,7 +75,7 @@ public class D17Maze
       if (nx >= Width || ny >= Height) break;
       nscore += Scores[ny, nx];
 
-      yield return new(new(nx, ny), -dir, steps, nscore, node);
+      if (steps >= MinMove) yield return new(new(nx, ny), -dir, steps, nscore, node);
     }
 
     // Reset for the return journey
@@ -87,14 +84,14 @@ public class D17Maze
     nscore = score;
 
     // Reverse direction (towards start) afterwards
-    foreach (int steps in Enumerable.Range(1, 3))
+    foreach (int steps in Enumerable.Range(1, MaxMove))
     {
       nx -= dir.ΔX;
       ny -= dir.ΔY;
       if (ny < 0 || nx < 0) break;
       nscore += Scores[ny, nx];
 
-      yield return new(new(nx, ny), dir, steps, nscore, node);
+      if (steps >= MinMove) yield return new(new(nx, ny), dir, steps, nscore, node);
     }
   }
 

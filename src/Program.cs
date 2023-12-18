@@ -104,7 +104,7 @@ public static class Program
       else Console.Write($"Output: ");
       Console.WriteLine($"{given} / Time: {watch.ElapsedMilliseconds} ms");
 
-      if (given != answer) return false;
+      if (given != answer && answer != "?") return false;
     }
 
     if (!tested) Console.WriteLine("No test cases were provided (if this is part 2, did you remember to add answers?)! Continuing anyway...");
