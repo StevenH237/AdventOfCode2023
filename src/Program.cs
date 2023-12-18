@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics;
+using System.Reflection;
 using Nixill.Utils;
 
 public static class Program
@@ -87,13 +88,21 @@ public static class Program
       // A blank line means that this input file doesn't apply to this part
       if (answer == "") continue;
 
+      // This is for timing stuff.
+      Stopwatch watch = new();
+
       // Now perform the test!
       tested = true;
       string fname = (new FileInfo(fpath)).Name;
+      watch.Start();
       string given = method(fname, input);
+      watch.Stop();
 
       // Output the results!
-      Console.WriteLine($"Test file: {fname} / Expected output: {answer} / Actual output: {given}");
+      Console.Write($"Test file: {fname} / ");
+      if (answer != "?") Console.Write($"Expected output: {answer} / Actual output: ");
+      else Console.Write($"Output: ");
+      Console.WriteLine($"{given} / Time: {watch.ElapsedMilliseconds} ms");
 
       if (given != answer) return false;
     }
@@ -108,7 +117,12 @@ public static class Program
   {
     using StreamReader input = new(File.OpenRead($"data/day{day}/input.txt"));
 
-    Console.WriteLine($"Result on puzzle input: {method("input.txt", input)}");
+    Stopwatch watch = new();
+    watch.Start();
+    string answer = method("input.txt", input);
+    watch.Stop();
+
+    Console.WriteLine($"Result on puzzle input: {answer} / Time: {watch.ElapsedMilliseconds} ms");
   }
 
   // For convenience:
