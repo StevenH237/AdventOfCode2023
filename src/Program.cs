@@ -157,4 +157,19 @@ public static class Program
     else if (inp.EndsWith("\n")) return inp[..^1];
     else return inp;
   }
+
+  public static IEnumerable<string> GetLinesOfChunk(this StreamReader input)
+  {
+    for (string line = input.ReadLine(); line != null; line = input.ReadLine())
+    {
+      if (line == "")
+      {
+        yield break;
+      }
+      else
+      {
+        yield return line;
+      }
+    }
+  }
 }
