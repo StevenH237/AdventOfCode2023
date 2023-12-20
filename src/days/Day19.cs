@@ -4,15 +4,19 @@ using Nixill.Utils;
 
 public class Day19
 {
-  Dictionary<string, List<D19Part>> Buckets = new();
-  Dictionary<string, D19Workflow> Workflows = new();
-  HashSet<string> PendingWorkflows = new();
+  public Dictionary<string, List<D19Part>> Buckets = new();
+  public Dictionary<string, List<D19PartRange>> Ranges = new();
+  public Dictionary<string, D19Workflow> Workflows = new();
+  public HashSet<string> PendingWorkflows1 = new();
+  public HashSet<string> PendingWorkflows2 = new();
 
   public Day19(string fname, StreamReader input)
   {
     // First, add "A" and "R" buckets
     Buckets["A"] = new();
     Buckets["R"] = new();
+    Ranges["A"] = new();
+    Ranges["R"] = new();
 
     // First chunk is workflows
     foreach (string line in input.GetLinesOfChunk())
@@ -20,6 +24,7 @@ public class Day19
       D19Workflow flow = new(line);
       Workflows[flow.ID] = flow;
       Buckets[flow.ID] = new();
+      Ranges[flow.ID] = new();
     }
 
     // Second chunk is parts
@@ -29,25 +34,63 @@ public class Day19
       Buckets["in"].Add(part);
     }
 
-    PendingWorkflows.Add("in");
+    PendingWorkflows1.Add("in");
+
+    // And lastly, part 2 stuff
+    D19PartRange range = new()
+    {
+      XMin = 1,
+      XMax = 4000,
+      MMin = 1,
+      MMax = 4000,
+      AMin = 1,
+      AMax = 4000,
+      SMin = 1,
+      SMax = 4000
+    };
+
+    Ranges["in"].Add(range);
+    PendingWorkflows2.Add("in");
   }
 
   public void ProcessParts()
   {
-    while (PendingWorkflows.Count > 0)
+    while (PendingWorkflows1.Count > 0)
     {
-      string flowID = PendingWorkflows.First();
+      string flowID = PendingWorkflows1.First();
       D19Workflow flow = Workflows[flowID];
       List<D19Part> bucket = Buckets[flowID];
 
-      PendingWorkflows.Remove(flowID);
+      PendingWorkflows1.Remove(flowID);
 
       while (bucket.Count > 0)
       {
         D19Part part = bucket.Pop();
         string movingTo = flow.SortPart(part);
         Buckets[movingTo].Add(part);
-        if (movingTo != "A" && movingTo != "R") PendingWorkflows.Add(movingTo);
+        if (movingTo != "A" && movingTo != "R") PendingWorkflows1.Add(movingTo);
+      }
+    }
+  }
+
+  public void ProcessRanges()
+  {
+    while (PendingWorkflows2.Count > 0)
+    {
+      string flowID = PendingWorkflows2.First();
+      D19Workflow flow = Workflows[flowID];
+      List<D19PartRange> rangeList = Ranges[flowID];
+
+      PendingWorkflows2.Remove(flowID);
+
+      while (rangeList.Count > 0)
+      {
+        D19PartRange range = rangeList.Pop();
+        foreach ((string movingTo, D19PartRange movingRange) in flow.SplitRange(range))
+        {
+          Ranges[movingTo].Add(movingRange);
+          if (movingTo != "A" && movingTo != "R") PendingWorkflows2.Add(movingTo);
+        }
       }
     }
   }
@@ -67,6 +110,13 @@ public class Day19
     result.ProcessParts();
     return result.Buckets["A"].Sum(p => p.Sum).ToString();
   }
+
+  public static string Part2(string fname, StreamReader input)
+  {
+    Day19 result = Get(fname, input);
+    result.ProcessRanges();
+    return result.Ranges["A"].Sum(r => r.Count).ToString();
+  }
 }
 
 public class D19Workflow
@@ -85,6 +135,11 @@ public class D19Workflow
     ID = mtc.Groups[1].Value;
     Rules = mtc.Groups[2].Value.Split(",", StringSplitOptions.RemoveEmptyEntries).Select(s => new D19Rule(s)).ToList();
     FinalMove = mtc.Groups[3].Value;
+
+    while (Rules.Any() && Rules.Last().MoveTo == FinalMove)
+    {
+      Rules.RemoveAt(Rules.Count - 1);
+    }
   }
 
   public D19Workflow(string id, IEnumerable<D19Rule> rules, string finalMove)
@@ -92,6 +147,11 @@ public class D19Workflow
     ID = id;
     Rules = new(rules);
     FinalMove = finalMove;
+
+    while (Rules.Any() && Rules.Last().MoveTo == FinalMove)
+    {
+      Rules.RemoveAt(Rules.Count - 1);
+    }
   }
 
   public string SortPart(D19Part input)
@@ -102,6 +162,19 @@ public class D19Workflow
     }
 
     return FinalMove;
+  }
+
+  public IEnumerable<(string Target, D19PartRange Range)> SplitRange(D19PartRange range)
+  {
+    foreach (D19Rule rule in Rules)
+    {
+      (D19PartRange? keep, D19PartRange? move) = rule.SplitRange(range);
+      if (move.HasValue) yield return (rule.MoveTo, move.Value);
+      if (!keep.HasValue) yield break;
+      range = keep.Value;
+    }
+
+    yield return (FinalMove, range);
   }
 }
 
@@ -137,6 +210,58 @@ public struct D19Rule
   {
     if (CheckGreater) return test[TestedAttribute] > RequiredValue;
     else return test[TestedAttribute] < RequiredValue;
+  }
+
+  public (D19PartRange? Keep, D19PartRange? Move) SplitRange(D19PartRange range)
+  {
+    D19PartRange intRange = range;
+    D19PartRange? keepRange = range;
+    D19PartRange? moveRange = range;
+    (int Min, int Max) = range[TestedAttribute];
+
+    if (CheckGreater)
+    {
+      if (Min > RequiredValue)
+      {
+        keepRange = null;
+      }
+      else if (Max <= RequiredValue)
+      {
+        moveRange = null;
+      }
+      else
+      {
+        // this feels a little dumb but whatever
+        intRange[TestedAttribute, true] = RequiredValue;
+        keepRange = intRange;
+
+        intRange = range;
+        intRange[TestedAttribute, false] = RequiredValue + 1;
+        moveRange = intRange;
+      }
+    }
+    else
+    {
+      if (Max < RequiredValue)
+      {
+        keepRange = null;
+      }
+      else if (Min >= RequiredValue)
+      {
+        moveRange = null;
+      }
+      else
+      {
+        intRange[TestedAttribute, false] = RequiredValue;
+        keepRange = intRange;
+
+        intRange = range;
+        intRange[TestedAttribute, true] = RequiredValue - 1;
+        moveRange = intRange;
+      }
+    }
+
+    return (keepRange, moveRange);
   }
 }
 
@@ -178,4 +303,52 @@ public struct D19Part
     A = a;
     S = s;
   }
+}
+
+public struct D19PartRange
+{
+  public int XMin;
+  public int XMax;
+  public int MMin;
+  public int MMax;
+  public int AMin;
+  public int AMax;
+  public int SMin;
+  public int SMax;
+
+  public (int Min, int Max) this[char attr]
+  {
+    get => attr switch
+    {
+      'X' or 'x' => (XMin, XMax),
+      'M' or 'm' => (MMin, MMax),
+      'A' or 'a' => (AMin, AMax),
+      'S' or 's' => (SMin, SMax),
+      _ => (0, 4000)
+    };
+
+    set
+    {
+      if (attr == 'X' || attr == 'x') (XMin, XMax) = value;
+      if (attr == 'M' || attr == 'm') (MMin, MMax) = value;
+      if (attr == 'A' || attr == 'a') (AMin, AMax) = value;
+      if (attr == 'S' || attr == 's') (SMin, SMax) = value;
+    }
+  }
+
+  public int this[char attr, bool max]
+  {
+    get => max ? this[attr].Max : this[attr].Min;
+    set
+    {
+      if (max) this[attr] = (this[attr, false], value);
+      else this[attr] = (value, this[attr, true]);
+    }
+  }
+
+  static long CountAttr((int Min, int Max) range) => range.Max - range.Min + 1;
+
+  public long Count => CountAttr(this['X']) * CountAttr(this['M']) * CountAttr(this['A']) * CountAttr(this['S']);
+
+  public override string ToString() => $"{{x={XMin}..{XMax}, m={MMin}..{MMax}, a={AMin}..{AMax}, s={SMin}..{SMax}}}";
 }
