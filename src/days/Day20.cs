@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using Nixill.Collections;
+using Nixill.Utils;
 
 public class Day20
 {
@@ -21,9 +22,39 @@ public class Day20
 
   public static string Part1(string fname, StreamReader input)
   {
-    Day20 result = Get(fname, input);
-    foreach (int i in Enumerable.Range(1, 1000)) result.Field.PressTheButton();
-    return (result.Field.HighPulses * result.Field.LowPulses).ToString();
+    D20Field field = new(input.GetLines());
+    foreach (int i in Enumerable.Range(1, 1000)) field.PressTheButton().Count(); // Count forces full enum
+    return (field.HighPulses * field.LowPulses).ToString();
+  }
+
+  public static string Part2(string fname, StreamReader input)
+  {
+    HashSet<string> loops = new();
+    Dictionary<string, int> loopSizes = new();
+
+    D20Field field = new(input.GetLines());
+
+    foreach (string target in field.OutputsToFinal) loops.Add(target);
+
+    while (true)
+    {
+      foreach (D20Signal signal in field.PressTheButton())
+      {
+        if (signal.High && loops.Contains(signal.Source))
+        {
+          loops.Remove(signal.Source);
+          loopSizes[signal.Source] = field.ButtonPresses;
+
+          if (loops.Count == 0) return
+            loopSizes.Values
+              .Select(x => (long)x)
+              .AggregateFromFirst((a, x) => a * x)
+              .ToString();
+        }
+      }
+    }
+
+    throw new InvalidOperationException("How did you reach this error? 2");
   }
 }
 
@@ -31,6 +62,8 @@ public class D20Field
 {
   Dictionary<string, D20Module> Modules = new();
   internal bool ButtonProcessing = false;
+
+  internal List<string> OutputsToFinal = new();
 
   internal int ButtonPresses = 0;
   internal long HighPulses = 0;
@@ -52,11 +85,14 @@ public class D20Field
         "" => new D20BroadcasterModule(targets),
         "%" => new D20FlipFlopModule(id, targets),
         "&" => new D20ConjunctionModule(id, targets),
-        _ => throw new InvalidDataException("How did you reach this error?")
+        _ => throw new InvalidDataException("How did you reach this error? 1")
       };
 
       Modules[id] = module;
       foreach (string target in targets) inputs[target].Add(id);
+
+      if (inputs.ContainsKey("rx"))
+        OutputsToFinal = inputs[inputs["rx"].First()];
     }
 
     foreach (D20ConjunctionModule mod in Modules.Values.Where(x => x is D20ConjunctionModule))
@@ -68,7 +104,7 @@ public class D20Field
     }
   }
 
-  public void PressTheButton()
+  public IEnumerable<D20Signal> PressTheButton()
   {
     ButtonPresses += 1;
 
@@ -86,6 +122,8 @@ public class D20Field
 
       if (signal.High) HighPulses += 1;
       else LowPulses += 1;
+
+      yield return signal;
 
       if (Modules.ContainsKey(signal.Target))
       {
